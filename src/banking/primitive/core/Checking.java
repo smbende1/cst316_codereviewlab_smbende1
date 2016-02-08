@@ -37,20 +37,25 @@ public class Checking extends Account {
 	 * continue to withdraw an overdrawn account until the balance is below -$100
 	 */
 	public boolean withdraw(float amount) {
-		if (amount > 0.0f) {		
-			// KG: incorrect, last balance check should be >=
-			if (getState() == State.OPEN || (getState() == State.OVERDRAWN && balance > -100.0f)) {
-				balance = balance - amount;
-				numWithdraws++;
-				if (numWithdraws > 10)
-					balance = balance - 2.0f;
-				if (balance < 0.0f) {
-					setState(State.OVERDRAWN);
-				}
-				return true;
-			}
+		//Check first for scenarios that would cause the withdraw to fail:
+		//1. The amount is less than or equal to zero
+		//2. The balance is positive but the withdraw would cause the account balance to go below -100
+		//3. The balance is negative but the withdraw would cause the account balance to go below -100
+		if ((amount <= 0.0f) || ((amount > balance + 100f) && (balance >= 0.0f)) || ((balance < 0.0f) && (amount > 100 - Math.abs(balance))))
+		{
+			return false;
 		}
-		return false;
+		else
+		{
+			balance = balance - amount;
+			numWithdraws++;
+			if (numWithdraws > 10)
+				balance = balance - 2.0f;
+			if (balance < 0.0f) {
+				setState(State.OVERDRAWN);
+			}
+			return true;
+		}
 	}
 
 	public String getType() { return "Checking"; }
